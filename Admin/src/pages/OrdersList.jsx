@@ -49,9 +49,7 @@ const OrdersList = () => {
   const [signatureUrl, setSignatureUrl] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  
-  
-  
+  const [couponFilter, setCouponFilter] = useState("");
   const [cancelRemarks, setCancelRemarks] = useState("");
   const [codReturnRemarks, setCodReturnRemarks] = useState("");
   const [codCharge, setCodCharge] = useState("");
@@ -272,8 +270,11 @@ const [orderStats, setOrderStats] = useState({
   };
 
   const handleAddProductToOrder = () => {
-    if (!addProductSelected || !addProductWeight || !addProductWeight2) {
-      toast.error('Please select product, color and size');
+    const hasColors = addProductSelected?.colors && addProductSelected.colors.length > 0;
+    const hasSizes = addProductWeight && addProductSelected?.colors?.find(c => c.name === addProductWeight)?.sizes?.length > 0;
+
+    if (!addProductSelected || (hasColors && !addProductWeight) || (hasSizes && !addProductWeight2)) {
+      toast.error('Please select product, color and size if applicable');
       return;
     }
     
@@ -2913,10 +2914,7 @@ const statusCounts = getStatusCounts();
   </div>
 )}
 
-            <div className="modal-body">
-   
-
- 
+            <div className="modal-body view-order-layout" style={{ padding: '20px' }}>
               <div className="order-details-grid" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div className="order-info">
                   <h4>Order Information</h4>
@@ -3059,7 +3057,7 @@ const statusCounts = getStatusCounts();
                                 } else {
                                   setAddProductColor('');
                                   setAddProductSize('');
-                                  setAddProductPrice('');
+                                  setAddProductPrice(match.prod.basePrice || match.prod.price || '0');
                                 }
                               }}
                               style={{ padding: '10px 12px', cursor: 'pointer', fontSize: '13px', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -3083,94 +3081,106 @@ const statusCounts = getStatusCounts();
                       <div style={{ display: 'flex', gap: '16px', padding: '12px', background: 'white', borderRadius: '8px', border: '1px solid #e5e7eb'}}>
                         {/* Left side: Image */}
                         <img 
-                          src={addProductWeight && addProductSelected.colors?.find(c => c.name === addProductWeight)?.image || addProductSelected.colors?.[0]?.image || ''} 
+                          src={(addProductWeight && addProductSelected.colors?.find(c => c.name === addProductWeight)?.image) || addProductSelected.colors?.[0]?.image || addProductSelected.image || addProductSelected.imageUrl || ''} 
                           alt={addProductSelected.name}
                           style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e5e7eb', flexShrink: 0, marginTop: '10px'}}
                         />
 
                         {/* Right side: Product Name on top, Form Fields below */}
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          {/* Product Name */}
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <p style={{ margin: 0, fontWeight: '600', fontSize: '14px', color: '#111827' }}>{addProductSelected.name}</p>
-                            <button
-                              onClick={handleAddProductToOrder}
-                              disabled={!addProductWeight || !addProductWeight2}
-                              style={{ 
-                                padding: '6px 14px',
-                                background: (!addProductWeight || !addProductWeight2) ? '#9ca3af' : '#4169E1', 
-                                color: 'white', 
-                                border: 'none', 
-                                borderRadius: '6px', 
-                                fontSize: '13px', 
-                                fontWeight: '600', 
-                                cursor: (!addProductWeight || !addProductWeight2) ? 'not-allowed' : 'pointer', 
-                                whiteSpace: 'nowrap',
-                                height: '32px'
-                              }}
-                            >
-                              + Add
-                            </button>
-                          </div>
-                          
-                          {/* Form Fields */}
-                          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
-                            <div style={{ flex: '1 1 150px' }}>
-                              <label style={{ fontSize: '11px', fontWeight: '500', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Color</label>
-                              <select
-                                value={addProductWeight}
-                                onChange={e => { 
-                                  setAddProductColor(e.target.value); 
-                                  setAddProductSize(''); 
-                                  setAddProductPrice('');
-                                }}
-                                style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', backgroundColor: 'white' }}
-                              >
-                                <option value=""></option>
-                                {addProductSelected.colors?.map(c => (
-                                  <option key={c.name} value={c.name}>{c.name}</option>
-                                ))}
-                              </select>
+                        {(() => {
+                          const addHasColors = addProductSelected?.colors && addProductSelected.colors.length > 0;
+                          const addHasSizes = addProductWeight && addProductSelected?.colors?.find(c => c.name === addProductWeight)?.sizes?.length > 0;
+                          const isAddDisabled = (addHasColors && !addProductWeight) || (addHasSizes && !addProductWeight2);
+
+                          return (
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              {/* Product Name */}
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <p style={{ margin: 0, fontWeight: '600', fontSize: '14px', color: '#111827' }}>{addProductSelected.name}</p>
+                                <button
+                                  onClick={handleAddProductToOrder}
+                                  disabled={isAddDisabled}
+                                  style={{ 
+                                    padding: '6px 14px',
+                                    background: isAddDisabled ? '#9ca3af' : '#4169E1', 
+                                    color: 'white', 
+                                    border: 'none', 
+                                    borderRadius: '6px', 
+                                    fontSize: '13px', 
+                                    fontWeight: '600', 
+                                    cursor: isAddDisabled ? 'not-allowed' : 'pointer', 
+                                    whiteSpace: 'nowrap',
+                                    height: '32px'
+                                  }}
+                                >
+                                  + Add
+                                </button>
+                              </div>
+                              
+                              {/* Form Fields */}
+                              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
+                                {addHasColors && (
+                                  <div style={{ flex: '1 1 150px' }}>
+                                    <label style={{ fontSize: '11px', fontWeight: '500', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Color</label>
+                                    <select
+                                      value={addProductWeight}
+                                      onChange={e => { 
+                                        setAddProductColor(e.target.value); 
+                                        setAddProductSize(''); 
+                                        setAddProductPrice(addProductSelected?.basePrice || addProductSelected?.price || '0');
+                                      }}
+                                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', backgroundColor: 'white' }}
+                                    >
+                                      <option value=""></option>
+                                      {addProductSelected.colors?.map(c => (
+                                        <option key={c.name} value={c.name}>{c.name}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                )}
+                                {addHasSizes && (
+                                  <div style={{ flex: '1 1 150px' }}>
+                                    <label style={{ fontSize: '11px', fontWeight: '500', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Size</label>
+                                    <select
+                                      value={addProductWeight2}
+                                      onChange={e => {
+                                        setAddProductSize(e.target.value);
+                                        const sizeObj = addProductSelected.colors?.find(c => c.name === addProductWeight)?.sizes?.find(s => s.size === e.target.value);
+                                        setAddProductPrice(sizeObj?.price || addProductSelected.basePrice || '0');
+                                      }}
+                                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', backgroundColor: 'white' }}
+                                      disabled={!addProductWeight}
+                                    >
+                                      <option value=""></option>
+                                      {addProductSelected.colors?.find(c => c.name === addProductWeight)?.sizes?.map(s => (
+                                        <option key={s.size} value={s.size}>{s.size}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                )}
+                                <div style={{ flex: '0 0 80px', marginBottom: '16px' }}>
+                                  <label style={{ fontSize: '11px', fontWeight: '500', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Qty</label>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    value={addProductQty}
+                                    onChange={e => setAddProductQty(e.target.value)}
+                                    style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', textAlign: 'center' }}
+                                  />
+                                </div>
+                                <div style={{ flex: '0 0 90px',  marginBottom: '16px'  }}>
+                                  <label style={{ fontSize: '11px', fontWeight: '500', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Price</label>
+                                  <input
+                                    type="number"
+                                    value={addProductPrice}
+                                    readOnly
+                                    style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
+                                  />
+                                </div>
+                              </div>
                             </div>
-                            <div style={{ flex: '1 1 150px' }}>
-                              <label style={{ fontSize: '11px', fontWeight: '500', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Size</label>
-                              <select
-                                value={addProductWeight2}
-                                onChange={e => {
-                                  setAddProductSize(e.target.value);
-                                  const sizeObj = addProductSelected.colors?.find(c => c.name === addProductWeight)?.sizes?.find(s => s.size === e.target.value);
-                                  setAddProductPrice(sizeObj?.price || addProductSelected.basePrice || '0');
-                                }}
-                                style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', backgroundColor: 'white' }}
-                                disabled={!addProductWeight}
-                              >
-                                <option value=""></option>
-                                {addProductSelected.colors?.find(c => c.name === addProductWeight)?.sizes?.map(s => (
-                                  <option key={s.size} value={s.size}>{s.size}</option>
-                                ))}
-                              </select>
-                            </div>
-                            <div style={{ flex: '0 0 80px', marginBottom: '16px' }}>
-                              <label style={{ fontSize: '11px', fontWeight: '500', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Qty</label>
-                              <input
-                                type="number"
-                                min="1"
-                                value={addProductQty}
-                                onChange={e => setAddProductQty(e.target.value)}
-                                style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px', textAlign: 'center' }}
-                              />
-                            </div>
-                            <div style={{ flex: '0 0 90px',  marginBottom: '16px'  }}>
-                              <label style={{ fontSize: '11px', fontWeight: '500', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Price</label>
-                              <input
-                                type="number"
-                                value={addProductPrice}
-                                onChange={e => setAddProductPrice(e.target.value)}
-                                style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '13px' }}
-                              />
-                            </div>
-                          </div>
-                        </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
@@ -3204,109 +3214,126 @@ const statusCounts = getStatusCounts();
                             <p><strong>{item.name}</strong></p>
                             {editingItems ? (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
-                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                  {/* Color dropdown */}
-                                  <div style={{ flex: 1, minWidth: '100px' }}>
-                                    <label style={{ fontSize: '11px', color: '#555', display: 'block' }}>Color</label>
-                                    <select
-                                      value={editItems[idx]?.color || ''}
-                                      onChange={e => {
-                                        const prod = allProducts.find(p => p.id === editItems[idx]?.productId);
-                                        const colorObj = prod?.colors?.find(c => c.name === e.target.value);
-                                        const updated = [...editItems];
-                                        updated[idx] = {
-                                          ...updated[idx],
-                                          color: e.target.value,
-                                          size: '',
-                                          imageUrl: colorObj?.image || updated[idx].imageUrl,
-                                          price: colorObj?.sizes?.[0]?.price || prod?.basePrice || updated[idx].price,
-                                        };
-                                        setEditItems(updated);
-                                      }}
-                                      style={{ 
-                                        width: '100%', 
-                                        padding: '5px 8px', 
-                                        border: editItems[idx]?.color ? '1px solid #ddd' : '2px solid #ef4444', 
-                                        borderRadius: '6px', 
-                                        fontSize: '13px' 
-                                      }}
-                                    >
-                                      <option value="">-- Color --</option>
-                                      {(allProducts.find(p => p.id === editItems[idx]?.productId)?.colors || []).map(c => (
-                                        <option key={c.name} value={c.name}>{c.name}</option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                  {/* Size dropdown */}
-                                  <div style={{ flex: 1, minWidth: '80px' }}>
-                                    <label style={{ fontSize: '11px', color: '#555', display: 'block' }}>Size</label>
-                                    <select
-                                      value={editItems[idx]?.size || ''}
-                                      onChange={e => {
-                                        const prod = allProducts.find(p => p.id === editItems[idx]?.productId);
-                                        const colorObj = prod?.colors?.find(c => c.name === editItems[idx]?.color);
-                                        const sizeObj = colorObj?.sizes?.find(s => s.size === e.target.value);
-                                        const updated = [...editItems];
-                                        updated[idx] = {
-                                          ...updated[idx],
-                                          size: e.target.value,
-                                          
-                                          price: sizeObj?.price || prod?.basePrice || updated[idx].price,
-                                        };
-                                        setEditItems(updated);
-                                      }}
-                                      style={{ 
-                                        width: '100%', 
-                                        padding: '5px 8px', 
-                                        border: editItems[idx]?.size ? '1px solid #ddd' : '2px solid #ef4444', 
-                                        borderRadius: '6px', 
-                                        fontSize: '13px' 
-                                      }}
-                                    >
-                                      <option value="">-- Size --</option>
-                                      {(allProducts.find(p => p.id === editItems[idx]?.productId)?.colors?.find(c => c.name === editItems[idx]?.color)?.sizes || []).map(s => (
-                                        <option key={s.size} value={s.size}>{s.size}</option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                  {/* Qty */}
-                                  <div style={{ flex: '0 0 60px' }}>
-                                    <label style={{ fontSize: '11px', color: '#555', display: 'block' }}>Qty</label>
-                                    <input
-                                      type="number"
-                                      min="1"
-                                      value={editItems[idx]?.quantity || ''}
-                                      onChange={e => { const updated = [...editItems]; updated[idx] = { ...updated[idx], quantity: parseInt(e.target.value) || 1 }; setEditItems(updated); }}
-                                      style={{ 
-                                        width: '100%', 
-                                        padding: '5px 8px', 
-                                        border: (editItems[idx]?.quantity && editItems[idx]?.quantity > 0) ? '1px solid #ddd' : '2px solid #ef4444', 
-                                        borderRadius: '6px', 
-                                        fontSize: '13px' 
-                                      }}
-                                    />
-                                  </div>
-                                  {/* Price */}
-                                  <div style={{ flex: '0 0 80px' }}>
-                                    <label style={{ fontSize: '11px', color: '#555', display: 'block' }}>Price</label>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="0.01"
-                                      value={editItems[idx]?.price || ''}
-                                      readOnly
-                                      style={{ 
-                                        width: '100%', 
-                                        padding: '5px 8px', 
-                                        border: '1px solid #ddd', 
-                                        borderRadius: '6px', 
-                                        fontSize: '13px',
-                                        backgroundColor: '#f3f4f6',
-                                        cursor: 'not-allowed'
-                                      }}
-                                    />
-                                  </div>
-                                </div>
+                                {(() => {
+                                  const prod = allProducts.find(p => p.id === editItems[idx]?.productId);
+                                  const hasColors = (prod?.colors && prod.colors.length > 0) || editItems[idx]?.color;
+                                  const hasSizes = (editItems[idx]?.color && prod?.colors?.find(c => c.name === editItems[idx]?.color)?.sizes?.length > 0) || editItems[idx]?.size;
+                                  
+                                  return (
+                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                      {/* Color dropdown */}
+                                      {hasColors && (
+                                        <div style={{ flex: 1, minWidth: '100px' }}>
+                                          <label style={{ fontSize: '11px', color: '#555', display: 'block' }}>Color</label>
+                                          <select
+                                            value={editItems[idx]?.color || ''}
+                                            onChange={e => {
+                                              const prod = allProducts.find(p => p.id === editItems[idx]?.productId);
+                                              const colorObj = prod?.colors?.find(c => c.name === e.target.value);
+                                              const updated = [...editItems];
+                                              updated[idx] = {
+                                                ...updated[idx],
+                                                color: e.target.value,
+                                                size: '',
+                                                imageUrl: colorObj?.image || updated[idx].imageUrl,
+                                                price: colorObj?.sizes?.[0]?.price || prod?.basePrice || updated[idx].price,
+                                              };
+                                              setEditItems(updated);
+                                            }}
+                                            style={{ 
+                                              width: '100%', 
+                                              padding: '5px 8px', 
+                                              border: editItems[idx]?.color ? '1px solid #ddd' : '2px solid #ef4444', 
+                                              borderRadius: '6px', 
+                                              fontSize: '13px' 
+                                            }}
+                                          >
+                                            <option value="">-- Color --</option>
+                                            {(allProducts.find(p => p.id === editItems[idx]?.productId)?.colors || []).map(c => (
+                                              <option key={c.name} value={c.name}>{c.name}</option>
+                                            ))}
+                                          </select>
+                                        </div>
+                                      )}
+                                      
+                                      {/* Size dropdown */}
+                                      {hasSizes && (
+                                        <div style={{ flex: 1, minWidth: '80px' }}>
+                                          <label style={{ fontSize: '11px', color: '#555', display: 'block' }}>Size</label>
+                                          <select
+                                            value={editItems[idx]?.size || ''}
+                                            onChange={e => {
+                                              const prod = allProducts.find(p => p.id === editItems[idx]?.productId);
+                                              const colorObj = prod?.colors?.find(c => c.name === editItems[idx]?.color);
+                                              const sizeObj = colorObj?.sizes?.find(s => s.size === e.target.value);
+                                              const updated = [...editItems];
+                                              updated[idx] = {
+                                                ...updated[idx],
+                                                size: e.target.value,
+                                                
+                                                price: sizeObj?.price || prod?.basePrice || updated[idx].price,
+                                              };
+                                              setEditItems(updated);
+                                            }}
+                                            style={{ 
+                                              width: '100%', 
+                                              padding: '5px 8px', 
+                                              border: editItems[idx]?.size ? '1px solid #ddd' : '2px solid #ef4444', 
+                                              borderRadius: '6px', 
+                                              fontSize: '13px' 
+                                            }}
+                                          >
+                                            <option value="">-- Size --</option>
+                                            {(allProducts.find(p => p.id === editItems[idx]?.productId)?.colors?.find(c => c.name === editItems[idx]?.color)?.sizes || []).map(s => (
+                                              <option key={s.size} value={s.size}>{s.size}</option>
+                                            ))}
+                                          </select>
+                                        </div>
+                                      )}
+                                      
+                                      {/* Qty */}
+                                      <div style={{ flex: '0 0 60px' }}>
+                                        <label style={{ fontSize: '11px', color: '#555', display: 'block' }}>Qty</label>
+                                        <input
+                                          type="number"
+                                          min="1"
+                                          value={editItems[idx]?.quantity || ''}
+                                          onChange={e => { const updated = [...editItems]; updated[idx] = { ...updated[idx], quantity: parseInt(e.target.value) || 1 }; setEditItems(updated); }}
+                                          style={{ 
+                                            width: '100%', 
+                                            padding: '5px 8px', 
+                                            border: (editItems[idx]?.quantity && editItems[idx]?.quantity > 0) ? '1px solid #ddd' : '2px solid #ef4444', 
+                                            borderRadius: '6px', 
+                                            fontSize: '13px' 
+                                          }}
+                                        />
+                                      </div>
+                                      
+                                      {/* Price */}
+                                      <div style={{ flex: '0 0 80px' }}>
+                                        <label style={{ fontSize: '11px', color: '#555', display: 'block' }}>Price</label>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          step="0.01"
+                                          value={editItems[idx]?.price === 0 ? '' : editItems[idx]?.price || ''}
+                                          onChange={e => {
+                                            const updated = [...editItems];
+                                            updated[idx] = { ...updated[idx], price: parseFloat(e.target.value) || 0 };
+                                            setEditItems(updated);
+                                          }}
+                                          style={{ 
+                                            width: '100%', 
+                                            padding: '5px 8px', 
+                                            border: '1px solid #ddd', 
+                                            borderRadius: '6px', 
+                                            fontSize: '13px'
+                                          }}
+                                        />
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
                                 {/* Remove button in edit mode */}
                                 <button
                                   onClick={() => {
@@ -3323,7 +3350,13 @@ const statusCounts = getStatusCounts();
                               </div>
                             ) : (
                               <>
-                                <p>Size: {item.weight}, Color: {item.weight}</p>
+                                {(item.size || item.color) && (
+                                  <p>
+                                    {item.size && `Size: ${item.size}`}
+                                    {item.size && item.color && ', '}
+                                    {item.color && `Color: ${item.color}`}
+                                  </p>
+                                )}
                                 {item.sizeVariantId && (
                                   <p style={{ fontSize: '14px', color: '#111', fontFamily: 'monospace', background: '#fef3c7', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>
                                     Variant ID: <strong style={{ fontWeight: '900', fontSize: '16px' }}>{item.sizeVariantId}</strong>
