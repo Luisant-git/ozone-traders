@@ -1,0 +1,175 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma.service';
+
+@Injectable()
+export class DashboardService {
+  constructor(private prisma: PrismaService) {}
+
+  async getDashboardStats() {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+    // Current period stats - only shipped and placed orders
+    const currentOrders = await this.prisma.order.findMany({
+      where: { 
+        createdAt: { gte: thirtyDaysAgo },
+        status: { in: ['Shipped', 'Accepted','Delivered'] }
+      }
+    });
+
+    // Previous period stats for comparison - only shipped and placed orders
+    const previousOrders = await this.prisma.order.findMany({
+      where: { 
+        createdAt: { 
+          gte: sixtyDaysAgo,
+          lt: thirtyDaysAgo 
+        },
+        status: { in: ['Shipped', 'Accepted','Delivered'] }
+      }
+    });
+
+    const currentRevenue = currentOrders.reduce((sum, order) => sum + parseFloat(order.total), 0);
+    const previousRevenue = previousOrders.reduce((sum, order) => sum + parseFloat(order.total), 0);
+    const revenueChange = previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue * 100).toFixed(0) : '0';
+
+    const currentOrderCount = currentOrders.length;
+    const previousOrderCount = previousOrders.length;
+    const orderChange = previousOrderCount > 0 ? ((currentOrderCount - previousOrderCount) / previousOrderCount * 100).toFixed(0) : '0';
+
+    const currentCustomers = await this.prisma.user.count({
+      where: { createdAt: { gte: thirtyDaysAgo } }
+    });
+    const previousCustomers = await this.prisma.user.count({
+      where: { 
+        createdAt: { 
+          gte: sixtyDaysAgo,
+          lt: thirtyDaysAgo 
+        } 
+      }
+    });
+    const customerChange = previousCustomers > 0 ? ((currentCustomers - previousCustomers) / previousCustomers * 100).toFixed(0) : '0';
+
+    const pendingDelivery = await this.prisma.order.count({
+      where: { status: { in: ['pending', 'processing'] } }
+    });
+
+    return {
+      totalRevenue: {
+        value: `₹${currentRevenue.toFixed(0)}`,
+        change: `${Math.abs(parseInt(revenueChange))}%`,
+        trend: parseInt(revenueChange) >= 0 ? 'up' : 'down'
+      },
+      totalOrder: {
+        value: currentOrderCount.toString(),
+        change: `${Math.abs(parseInt(orderChange))}%`,
+        trend: parseInt(orderChange) >= 0 ? 'up' : 'down'
+      },
+      totalCustomer: {
+        value: currentCustomers.toString(),
+        change: `${Math.abs(parseInt(customerChange))}%`,
+        trend: parseInt(customerChange) >= 0 ? 'up' : 'down'
+      },
+      pendingDelivery: {
+        value: pendingDelivery.toString(),
+        change: '5%',
+        trend: 'up'
+      }
+    };
+  }
+
+  async getSalesAnalytics() {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentYear = new Date().getFullYear();
+    
+    const salesData = await Promise.all(
+      months.map(async (month, index) => {
+        const startDate = new Date(currentYear, index, 1);
+        const endDate = new Date(currentYear, index + 1, 0);
+        
+        const orders = await this.prisma.order.findMany({
+          where: {
+            createdAt: {
+              gte: startDate,
+              lte: endDate
+            },
+            status: { in: ['Shipped', 'Placed'] }
+          }
+        });
+        
+        const sales = orders.reduce((sum, order) => sum + parseFloat(order.total), 0);
+        return { month, sales: Math.round(sales) };
+      })
+    );
+
+    return salesData;
+  }
+
+  async getTopSellingProducts() {
+    const products = await this.prisma.orderItem.groupBy({
+      by: ['productId', 'name', 'imageUrl'],
+      _sum: { quantity: true },
+      orderBy: { _sum: { quantity: 'desc' } },
+      take: 5,
+      where: { productId: { not: null } }
+    });
+
+    return products.map(p => ({
+      id: p.productId,
+      name: p.name,
+      image: p.imageUrl,
+      sold: p._sum.quantity
+    }));
+  }
+
+  async getCurrentOffers() {
+    // Return empty array since coupons are removed
+    return [];
+  }
+
+  async getRecentOrders() {
+    const orders = await this.prisma.order.findMany({
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+      include: { 
+        user: { select: { name: true, email: true, phone: true } },
+        items: { select: { id: true } }
+      }
+    });
+
+    return orders.map(order => {
+      const shipping = order.shippingAddress as any;
+      const profile = order.user;
+      
+      // Fallback logic: Shipping Name -> Profile Name -> 'Guest'
+      let customerName = (shipping?.fullName || shipping?.name);
+      if (!customerName || customerName.toLowerCase() === 'guest') {
+        customerName = profile?.name || 'Guest';
+      }
+
+      // Fallback logic for Email
+      let email = (shipping?.email);
+      if (!email || email === '') {
+        email = profile?.email || '';
+      }
+
+      // Fallback logic for Phone
+      let phone = (shipping?.mobileNumber || shipping?.phone);
+      if (!phone || phone === '') {
+        phone = profile?.phone || '';
+      }
+
+      return {
+        id: order.id,
+        customer: customerName,
+        email: email,
+        phone: phone,
+        items: order.items.length,
+        total: `₹${parseFloat(order.total).toFixed(2)}`,
+        status: order.status,
+        date: order.createdAt.toLocaleDateString('en-GB')
+      };
+    });
+  }
+}
