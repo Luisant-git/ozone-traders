@@ -44,11 +44,21 @@
   background-position: center;
   display: flex;
   align-items: center;
-  padding: 0 10%;
+  padding: 70px 10% 0;
 }
 
 .hero-content {
   max-width: 600px;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1.5rem;
+  position: relative;
+  z-index: 2;
+  pointer-events: all;
 }
 
 .hero-title {
@@ -62,11 +72,6 @@
 
 .hero-title .hero-highlight {
   color: #fcd34d;
-}
-
-.hero-buttons {
-  display: flex;
-  gap: 1.5rem;
 }
 
 .btn-outline-hero {
@@ -94,8 +99,15 @@
 }
 
 .btn-filled:hover {
-  background: #f3f4f6;
+  background: #f0f0f0;
   color: #1a1a1a;
+  border-color: white;
+}
+
+.btn-filled.btn-outline-hero:hover {
+  background: #f0f0f0;
+  color: #1a1a1a;
+  border-color: white;
 }
 
 /* About Section */

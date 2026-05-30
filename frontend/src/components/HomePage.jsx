@@ -74,11 +74,7 @@ const HomePage = () => {
             Get 10% off<br />
             <span className="hero-highlight">On all Spicy &amp; Herbs</span>
           </h1>
-          <div className="hero-buttons">
-            <button className="btn btn-outline-hero" onClick={() => {
-              const el = document.getElementById('products');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }}>View more</button>
+          <div className="hero-buttons" style={{ justifyContent: 'center' }}>
             <button className="btn btn-outline-hero btn-filled" onClick={() => {
               const el = document.getElementById('products');
               if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -180,9 +176,15 @@ const HomePage = () => {
                 onClick={() => navigate(generateProductUrl(product.name, product.id))}
               >
                 <div className="product-image-container">
-                  {idx === 0 && <div className="product-badge premium">★ Premium</div>}
-                  {idx === 1 && <div className="product-badge popular">🔥 Popular</div>}
-                  {idx === 2 && <div className="product-badge discount">20% OFF</div>}
+                  {product.tags && product.tags.length > 0 && (() => {
+                    const tag = product.tags[0];
+                    const tagLower = tag.toLowerCase();
+                    let badgeClass = 'premium';
+                    if (tagLower.includes('popular') || tagLower.includes('trending') || tagLower.includes('hot')) badgeClass = 'popular';
+                    else if (tagLower.includes('off') || tagLower.includes('sale') || tagLower.includes('discount')) badgeClass = 'discount';
+                    const tagIcon = badgeClass === 'popular' ? '🔥 ' : badgeClass === 'premium' ? '★ ' : '';
+                    return <div className={`product-badge ${badgeClass}`}>{tagIcon}{tag}</div>;
+                  })()}
                   <img src={getProductImage(product)} alt={product.name} />
                 </div>
                 <div className="product-info">
