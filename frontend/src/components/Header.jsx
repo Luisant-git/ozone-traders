@@ -15,6 +15,7 @@ const Header = () => {
 
     const [searchQuery, setSearchQuery] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
     const [categories, setCategories] = useState([]);
     const [showCatDropdown, setShowCatDropdown] = useState(false);
@@ -90,12 +91,12 @@ const Header = () => {
             <header style={styles.header}>
                 {/* Logo */}
                 <div style={styles.logoWrap} onClick={() => navigate('/')}>
-                    <img src="/logo.png" alt="Ozone Traders" style={styles.logo} />
-                    <span style={styles.logoText}>OZONE TRADERS</span>
+                    <img src="/logo.png" alt="Ozone Traders" className="header-logo-img" style={styles.logo} />
+                    <span className="header-logo-text" style={styles.logoText}>OZONE TRADERS</span>
                 </div>
 
                 {/* Desktop Navigation */}
-                <nav style={styles.nav}>
+                <nav className="desktop-nav" style={styles.nav}>
                     <a href="#home" style={styles.link} onClick={(e) => { e.preventDefault(); handleNavClick('#home'); }}>HOME</a>
                     <a href="#about" style={styles.link} onClick={(e) => { e.preventDefault(); handleNavClick('#about'); }}>ABOUT</a>
 
@@ -110,7 +111,7 @@ const Header = () => {
 
                 {/* Right side */}
                 <div style={styles.rightSection}>
-                    <form style={styles.searchForm} onSubmit={handleSearch}>
+                    <form className="desktop-search" style={styles.searchForm} onSubmit={handleSearch}>
                         <input
                             type="text"
                             placeholder="Search products..."
@@ -158,6 +159,11 @@ const Header = () => {
                     </form>
 
                     <div style={styles.icons}>
+                        {/* Mobile Search Icon */}
+                        <button className="mobile-search-icon" style={styles.iconBtn} onClick={() => setIsMobileSearchOpen(v => !v)} title="Search">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+                        </button>
+                        
                         <button style={styles.iconBtn} onClick={() => navigate(user ? '/profile' : '/login')} title={user ? 'Profile' : 'Login'}>
                             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0" /></svg>
                         </button>
@@ -168,11 +174,49 @@ const Header = () => {
                     </div>
 
                     {/* Hamburger */}
-                    <button style={styles.hamburger} onClick={() => setIsMobileMenuOpen(v => !v)}>
+                    <button className="mobile-hamburger" style={styles.hamburger} onClick={() => setIsMobileMenuOpen(v => !v)}>
                         <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
                     </button>
                 </div>
             </header>
+
+            {/* Mobile Search Overlay */}
+            {isMobileSearchOpen && (
+                <div style={{ position: 'fixed', top: '70px', left: 0, right: 0, backgroundColor: '#fff', padding: '12px 4%', zIndex: 95, borderBottom: '1px solid #e5e7eb', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                    <form style={{ position: 'relative' }} onSubmit={(e) => { handleSearch(e); setIsMobileSearchOpen(false); }}>
+                        <input type="text" placeholder="Search products..." value={searchQuery} onChange={handleSearchInput} style={{ width: '100%', padding: '0.6rem 1rem', borderRadius: '20px', border: '1px solid #d1d5db', outline: 'none', fontFamily: "'Poppins', sans-serif" }} />
+                        {searchResults.length > 0 && (
+                            <div style={styles.searchDropdown}>
+                                {searchResults.map(p => {
+                                    let imgUrl = p.image || p.gallery?.[0]?.url || '';
+                                    if (imgUrl && imgUrl.includes('localhost:4062')) {
+                                        imgUrl = imgUrl.replace('http://localhost:4062', API_BASE_URL);
+                                    }
+                                    return (
+                                        <div
+                                            key={p.id}
+                                            style={styles.searchItem}
+                                            onClick={() => {
+                                                navigate(generateProductUrl(p.name, p.id));
+                                                setSearchQuery('');
+                                                setSearchResults([]);
+                                                setIsMobileSearchOpen(false);
+                                            }}
+                                        >
+                                            <img src={imgUrl || '/placeholder.svg'} alt={p.name} style={styles.searchThumb} onError={e => { e.target.src = 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=80&q=60'; }} />
+                                            <div style={{ flex: 1, overflow: 'hidden' }}>
+                                                <div style={styles.searchName}>{p.name}</div>
+                                                <div style={styles.searchPrice}>₹{p.basePrice}<span style={{ color: '#9ca3af', fontWeight: 400 }}>/gram</span></div>
+                                                {p.category?.name && <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginTop: '1px' }}>{p.category.name}</div>}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </form>
+                </div>
+            )}
 
             {/* Mobile Menu */}
             {isMobileMenuOpen && (
@@ -224,7 +268,7 @@ const styles = {
     icons: { display: 'flex', alignItems: 'center', gap: '0.25rem' },
     iconBtn: { position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: '0.35rem', color: '#374151', display: 'flex', alignItems: 'center' },
     badge: { position: 'absolute', top: '-4px', right: '-6px', backgroundColor: '#92400e', color: '#fff', borderRadius: '10px', minWidth: '18px', height: '18px', padding: '0 4px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 },
-    hamburger: { display: 'none', background: 'none', border: 'none', cursor: 'pointer', color: '#374151', padding: '0.25rem' },
+    hamburger: { background: 'none', border: 'none', cursor: 'pointer', color: '#374151', padding: '0.25rem' },
     backdrop: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.35)', zIndex: 150 },
     mobileMenu: { position: 'fixed', top: 0, right: 0, bottom: 0, width: '270px', backgroundColor: '#fff', zIndex: 200, padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', boxShadow: '-4px 0 20px rgba(0,0,0,0.1)', overflowY: 'auto' },
     mobileClose: { alignSelf: 'flex-end', background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#374151', marginBottom: '0.5rem' },

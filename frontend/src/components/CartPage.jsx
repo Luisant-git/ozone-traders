@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../contexts/CartContext';
 import { getBundlePrice } from '../data/mockData';
+import API_BASE_URL from '../config/api';
 
 // Separate component so each item has its own local quantity state
 const QuantityInput = ({ quantity, onUpdate }) => {
@@ -91,16 +92,24 @@ const CartPage = () => {
                         <div key={item.id} className="cart-item">
                             {item.type === 'bundle' ? (
                                 <div className="bundle-images">
-                                    {item.bundleItems?.map((bundleItem, idx) => (
-                                        <img 
-                                            key={idx}
-                                            src={bundleItem.colorImage || item.imageUrl} 
-                                            alt={`${bundleItem.color}`}
-                                        />
-                                    ))}
+                                    {item.bundleItems?.map((bundleItem, idx) => {
+                                        let imgUrl = bundleItem.colorImage || item.imageUrl || '/placeholder.svg';
+                                        if (imgUrl.includes('localhost:4062')) imgUrl = imgUrl.replace('http://localhost:4062', API_BASE_URL);
+                                        return (
+                                            <img 
+                                                key={idx}
+                                                src={imgUrl} 
+                                                alt={`${bundleItem.color}`}
+                                            />
+                                        )
+                                    })}
                                 </div>
                             ) : (
-                                <img src={item.imageUrl} alt={item.name} />
+                                <img src={
+                                    (item.imageUrl || '/placeholder.svg').includes('localhost:4062') 
+                                        ? item.imageUrl.replace('http://localhost:4062', API_BASE_URL) 
+                                        : (item.imageUrl || '/placeholder.svg')
+                                } alt={item.name} />
                             )}
                             
                             <div className="cart-item-details">
@@ -109,20 +118,7 @@ const CartPage = () => {
                                     <span className="bundle-tag">Bundle</span>
                                 )}
                                 
-                                {item.type === 'bundle' ? (
-                                    <div className="bundle-info">
-                                        {item.bundleItems?.map((bundleItem, idx) => (
-                                            <div key={idx}>
-                                                <span>{bundleItem.color} - Size: {bundleItem.size}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div>
-                                        <span>Color: {item.color}</span>
-                                        <span>Size: {item.size}</span>
-                                    </div>
-                                )}
+
                                 
                                 <p className="product-price">₹{item.price}</p>
                                 {item.type === 'bundle' && item.bundleItems && (

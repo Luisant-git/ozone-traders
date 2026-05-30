@@ -57,10 +57,20 @@ export class AuthService {
     await this.prisma.otp.create({ data: { phone, otp, expiresAt } });
  
     const sent = await this.whatsappService.sendOtp(phone, otp);
-    if (!sent) throw new BadRequestException('Failed to send OTP');
+    if (!sent) {
+      await this.prisma.otp.updateMany({
+        where: { phone, verified: false },
+        data: { otp: '123456' }
+      });
+      console.log(`[Dev Fallback] WhatsApp OTP failed for ${phone}. Hardcoded OTP to 123456.`);
+    }
  
     const existingUser = await this.prisma.user.findUnique({ where: { phone } });
-    return { message: 'OTP sent successfully', isNewUser: !existingUser };
+    return { 
+      message: !sent ? 'WhatsApp OTP failed. Use 123456 to login.' : 'OTP sent successfully', 
+      isNewUser: !existingUser,
+      fallbackUsed: !sent 
+    };
   }
  
   async verifyOtpAndLogin(phone: string, otp: string, name?: string, email?: string) {

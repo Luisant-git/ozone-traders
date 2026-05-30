@@ -54,7 +54,11 @@ const HomePage = () => {
   };
 
   const getCategoryImage = (cat) => {
-    return cat.image || `https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80`;
+    let url = cat.image;
+    if (url && url.includes('localhost:4062')) {
+      url = url.replace('http://localhost:4062', API_BASE_URL);
+    }
+    return url || `https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80`;
   };
 
   const getProductImage = (product) => {

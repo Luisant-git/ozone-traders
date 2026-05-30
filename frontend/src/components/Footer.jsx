@@ -7,7 +7,7 @@ const Footer = () => {
     return (
         <footer style={styles.footer}>
             <div style={styles.container}>
-                <div style={styles.grid}>
+                <div className="footer-grid">
 
                     {/* Brand Column */}
                     <div style={styles.column}>

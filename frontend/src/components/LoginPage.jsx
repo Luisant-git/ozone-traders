@@ -35,7 +35,11 @@ const LoginPage = () => {
         try {
             const { data } = await axios.post(`${API_URL}/auth/otp/request`, { phone });
             setIsNewUser(data.isNewUser || false);
-            toast.success('OTP sent to WhatsApp!');
+            if (data.fallbackUsed) {
+                toast.error(data.message);
+            } else {
+                toast.success('OTP sent to WhatsApp!');
+            }
             setTimer(300);
             setStep(2);
         } catch (err) {

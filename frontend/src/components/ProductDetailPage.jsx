@@ -75,29 +75,73 @@ const ProductDetailPage = () => {
     };
 
     return (
-        <div style={styles.page}>
-            <div style={styles.container}>
+        <>
+        <style>{`
+            .pdp-page { padding: 90px 4% 4rem; max-width: 1200px; margin: 0 auto; font-family: 'Poppins', sans-serif; }
+            .pdp-container { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+            .pdp-image-section { display: flex; flex-direction: column; gap: 1rem; }
+            .pdp-main-image-wrapper { position: relative; border-radius: 12px; overflow: hidden; background: #f9fafb; }
+            .pdp-main-image { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; }
+            .pdp-out-of-stock { position: absolute; top: 1rem; left: 1rem; background: #dc2626; color: #fff; padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+            .pdp-thumbnail-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+            .pdp-thumbnail { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; cursor: pointer; }
+            .pdp-details-section { display: flex; flex-direction: column; gap: 1rem; }
+            .pdp-category { color: #f59e0b; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; margin: 0; }
+            .pdp-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: #1f2937; margin: 0; }
+            .pdp-quality { color: #6b7280; font-size: 0.9rem; margin: 0; }
+            .pdp-origin { color: #6b7280; font-size: 0.9rem; margin: 0; }
+            .pdp-pricing-box { background: #fefce8; border: 1px solid #fef08a; border-radius: 10px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }
+            .pdp-price-row { display: flex; justify-content: space-between; align-items: center; }
+            .pdp-price-label { color: #6b7280; font-size: 0.9rem; }
+            .pdp-price-value { font-weight: 700; color: #92400e; font-size: 1.1rem; }
+            .pdp-stock-row { margin-top: 0.5rem; font-size: 0.9rem; }
+            .pdp-desc-box { background: #f9fafb; border-radius: 8px; padding: 1rem; }
+            .pdp-desc { color: #4b5563; line-height: 1.7; margin: 0; font-size: 0.95rem; }
+            .pdp-hsn { color: #9ca3af; font-size: 0.8rem; margin: 0; }
+            .pdp-actions { display: flex; gap: 1rem; align-items: center; }
+            .pdp-add-btn { flex: 1; padding: 0.85rem; border: 2px solid #92400e; background: transparent; color: #92400e; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.95rem; font-family: 'Poppins', sans-serif; transition: all 0.2s; }
+            .pdp-add-btn:hover:not(:disabled) { background: #fffbeb; }
+            .pdp-buy-btn { flex: 1; padding: 0.85rem; border: none; background: #92400e; color: #fff; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.95rem; font-family: 'Poppins', sans-serif; transition: all 0.2s; }
+            .pdp-buy-btn:hover:not(:disabled) { background: #78350f; }
+            .pdp-wholesale { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem; color: #15803d; }
+            .pdp-call-btn { color: #92400e; font-weight: 600; text-decoration: none; font-size: 0.9rem; }
+            
+            @media (max-width: 900px) {
+                .pdp-container { grid-template-columns: 1fr; gap: 2rem; }
+                .pdp-page { padding: 90px 4% 2rem; }
+            }
+            @media (max-width: 480px) {
+                .pdp-page { padding: 80px 4% 2rem; }
+                .pdp-title { font-size: 1.8rem; }
+                .pdp-actions { flex-direction: column; }
+                .pdp-add-btn, .pdp-buy-btn { width: 100%; }
+                .pdp-pricing-box { padding: 1rem; }
+                .pdp-desc-box { padding: 0.8rem; }
+            }
+        `}</style>
+        <div className="pdp-page">
+            <div className="pdp-container">
                 {/* Image Gallery */}
-                <div style={styles.imageSection}>
-                    <div style={styles.mainImageWrapper}>
+                <div className="pdp-image-section">
+                    <div className="pdp-main-image-wrapper">
                         <img
                             src={activeImage || '/placeholder.svg'}
                             alt={product.name}
-                            style={styles.mainImage}
+                            className="pdp-main-image"
                         />
                         {!isInStock && (
-                            <div style={styles.outOfStockBadge}>Out of Stock</div>
+                            <div className="pdp-out-of-stock">Out of Stock</div>
                         )}
                     </div>
                     {images.length > 1 && (
-                        <div style={styles.thumbnailRow}>
+                        <div className="pdp-thumbnail-row">
                             {images.map((img, i) => (
                                 <img
                                     key={i}
                                     src={img}
                                     alt={`${product.name} ${i + 1}`}
+                                    className="pdp-thumbnail"
                                     style={{
-                                        ...styles.thumbnail,
                                         border: activeImage === img ? '2px solid #92400e' : '2px solid #e5e7eb',
                                     }}
                                     onClick={() => setActiveImage(img)}
@@ -108,30 +152,30 @@ const ProductDetailPage = () => {
                 </div>
 
                 {/* Product Info */}
-                <div style={styles.detailsSection}>
-                    <p style={styles.categoryTag}>{product.category?.name?.toUpperCase() || 'SPICE'}</p>
-                    <h1 style={styles.productName}>{product.name}</h1>
+                <div className="pdp-details-section">
+                    <p className="pdp-category">{product.category?.name?.toUpperCase() || 'SPICE'}</p>
+                    <h1 className="pdp-title">{product.name}</h1>
 
                     {product.qualityGrade && (
-                        <p style={styles.qualityTag}>Grade: <strong>{product.qualityGrade}</strong></p>
+                        <p className="pdp-quality">Grade: <strong>{product.qualityGrade}</strong></p>
                     )}
                     {product.originLocation && (
-                        <p style={styles.originTag}>📍 Origin: {product.originLocation}</p>
+                        <p className="pdp-origin">📍 Origin: {product.originLocation}</p>
                     )}
 
                     {/* Pricing */}
-                    <div style={styles.pricingBox}>
-                        <div style={styles.priceRow}>
-                            <span style={styles.priceLabel}>Retail Price</span>
-                            <span style={styles.priceValue}>₹{product.basePrice} / gram</span>
+                    <div className="pdp-pricing-box">
+                        <div className="pdp-price-row">
+                            <span className="pdp-price-label">Retail Price</span>
+                            <span className="pdp-price-value">₹{product.basePrice} / gram</span>
                         </div>
                         {product.wholesalePrice && (
-                            <div style={styles.priceRow}>
-                                <span style={styles.priceLabel}>Wholesale Price</span>
-                                <span style={{ ...styles.priceValue, color: '#15803d' }}>₹{product.wholesalePrice} / kg</span>
+                            <div className="pdp-price-row">
+                                <span className="pdp-price-label">Wholesale Price</span>
+                                <span className="pdp-price-value" style={{ color: '#15803d' }}>₹{product.wholesalePrice} / kg</span>
                             </div>
                         )}
-                        <div style={styles.stockRow}>
+                        <div className="pdp-stock-row">
                             <span style={{ color: isInStock ? '#15803d' : '#dc2626', fontWeight: 600 }}>
                                 {isInStock ? `✓ In Stock (${product.stock} units)` : '✗ Out of Stock'}
                             </span>
@@ -139,26 +183,28 @@ const ProductDetailPage = () => {
                     </div>
 
                     {product.description && (
-                        <div style={styles.descBox}>
-                            <p style={styles.description}>{product.description}</p>
+                        <div className="pdp-desc-box">
+                            <p className="pdp-desc">{product.description}</p>
                         </div>
                     )}
 
                     {product.hsnCode && (
-                        <p style={styles.hsnCode}>HSN Code: {product.hsnCode}</p>
+                        <p className="pdp-hsn">HSN Code: {product.hsnCode}</p>
                     )}
 
                     {/* Actions */}
-                    <div style={styles.actionsRow}>
+                    <div className="pdp-actions">
                         <button
-                            style={{ ...styles.addCartBtn, opacity: (!isInStock || cartLoading) ? 0.6 : 1 }}
+                            className="pdp-add-btn"
+                            style={{ opacity: (!isInStock || cartLoading) ? 0.6 : 1 }}
                             onClick={handleAddToCart}
                             disabled={!isInStock || cartLoading}
                         >
                             {cartLoading ? 'Adding...' : 'Add to Cart'}
                         </button>
                         <button
-                            style={{ ...styles.buyNowBtn, opacity: (!isInStock || cartLoading) ? 0.6 : 1 }}
+                            className="pdp-buy-btn"
+                            style={{ opacity: (!isInStock || cartLoading) ? 0.6 : 1 }}
                             onClick={handleBuyNow}
                             disabled={!isInStock || cartLoading}
                         >
@@ -168,45 +214,16 @@ const ProductDetailPage = () => {
 
                     {/* Wholesale note */}
                     {product.wholesalePrice && (
-                        <div style={styles.wholesaleNote}>
+                        <div className="pdp-wholesale">
                             <p>🌾 <strong>Bulk/Wholesale orders available.</strong> Contact us for special rates on orders above 10 kg.</p>
-                            <a href="tel:9677951187" style={styles.callBtn}>📞 Call for Wholesale Pricing</a>
+                            <a href="tel:9677951187" className="pdp-call-btn">📞 Call for Wholesale Pricing</a>
                         </div>
                     )}
                 </div>
             </div>
         </div>
+        </>
     );
 };
-
-const styles = {
-    page: { padding: '2rem 4%', maxWidth: '1200px', margin: '0 auto', fontFamily: "'Poppins', sans-serif" },
-    container: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'start' },
-    imageSection: { display: 'flex', flexDirection: 'column', gap: '1rem' },
-    mainImageWrapper: { position: 'relative', borderRadius: '12px', overflow: 'hidden', background: '#f9fafb' },
-    mainImage: { width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block' },
-    outOfStockBadge: { position: 'absolute', top: '1rem', left: '1rem', background: '#dc2626', color: '#fff', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600 },
-    thumbnailRow: { display: 'flex', gap: '0.75rem', flexWrap: 'wrap' },
-    thumbnail: { width: '70px', height: '70px', objectFit: 'cover', borderRadius: '8px', cursor: 'pointer' },
-    detailsSection: { display: 'flex', flexDirection: 'column', gap: '1rem' },
-    categoryTag: { color: '#f59e0b', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '1px', margin: 0 },
-    productName: { fontFamily: "'Playfair Display', serif", fontSize: '2.2rem', color: '#1f2937', margin: 0 },
-    qualityTag: { color: '#6b7280', fontSize: '0.9rem', margin: 0 },
-    originTag: { color: '#6b7280', fontSize: '0.9rem', margin: 0 },
-    pricingBox: { background: '#fefce8', border: '1px solid #fef08a', borderRadius: '10px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' },
-    priceRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-    priceLabel: { color: '#6b7280', fontSize: '0.9rem' },
-    priceValue: { fontWeight: 700, color: '#92400e', fontSize: '1.1rem' },
-    stockRow: { marginTop: '0.5rem', fontSize: '0.9rem' },
-    descBox: { background: '#f9fafb', borderRadius: '8px', padding: '1rem' },
-    description: { color: '#4b5563', lineHeight: '1.7', margin: 0, fontSize: '0.95rem' },
-    hsnCode: { color: '#9ca3af', fontSize: '0.8rem', margin: 0 },
-    actionsRow: { display: 'flex', gap: '1rem', alignItems: 'center' },
-    addCartBtn: { flex: 1, padding: '0.85rem', border: '2px solid #92400e', background: 'transparent', color: '#92400e', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontSize: '0.95rem', fontFamily: "'Poppins', sans-serif" },
-    buyNowBtn: { flex: 1, padding: '0.85rem', border: 'none', background: '#92400e', color: '#fff', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontSize: '0.95rem', fontFamily: "'Poppins', sans-serif" },
-    wishlistBtn: { fontSize: '1.5rem', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem' },
-    wholesaleNote: { background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: '#15803d' },
-    callBtn: { color: '#92400e', fontWeight: 600, textDecoration: 'none', fontSize: '0.9rem' },
-};
-
+// Styles removed as they are now injected via <style>
 export default ProductDetailPage;

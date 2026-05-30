@@ -4,6 +4,7 @@ import { getActiveProducts } from '../api/productApi';
 import { getCategories } from '../api/categoryApi';
 import { generateProductUrl } from '../utils/slugify';
 import LoadingSpinner from './LoadingSpinner';
+import API_BASE_URL from '../config/api';
 
 const ProductsPage = () => {
     const navigate = useNavigate();
@@ -85,7 +86,10 @@ const ProductsPage = () => {
             ) : (
                 <div style={styles.grid}>
                     {filtered.map(product => {
-                        const imgUrl = product.gallery?.[0]?.url || '/placeholder.svg';
+                        const rawUrl = product.gallery?.[0]?.url || '';
+                        const imgUrl = rawUrl
+                            ? rawUrl.replace('http://localhost:4062', API_BASE_URL)
+                            : '/placeholder.svg';
                         const isInStock = (product.stock || 0) > 0;
                         return (
                             <div
@@ -126,7 +130,7 @@ const ProductsPage = () => {
 };
 
 const styles = {
-    page: { padding: '2rem 4%', maxWidth: '1400px', margin: '0 auto', fontFamily: "'Poppins',sans-serif" },
+    page: { padding: '90px 4% 3rem', maxWidth: '1400px', margin: '0 auto', fontFamily: "'Poppins',sans-serif" },
     pageHeader: { textAlign: 'center', marginBottom: '2.5rem' },
     title: { fontFamily: "'Playfair Display',serif", fontSize: '2.8rem', color: '#92400e', margin: '0 0 0.5rem' },
     subtitle: { color: '#6b7280', fontSize: '1rem', margin: 0 },
@@ -137,7 +141,7 @@ const styles = {
     pillActive: { background: '#92400e', color: '#fff' },
     resultCount: { textAlign: 'center', color: '#9ca3af', fontSize: '0.85rem', marginBottom: '1.5rem' },
     noResults: { textAlign: 'center', color: '#9ca3af', padding: '3rem 0' },
-    grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '1.5rem' },
+    grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' },
     card: { border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', transition: 'box-shadow 0.3s ease' },
     imgWrap: { position: 'relative', aspectRatio: '1/1', overflow: 'hidden', background: '#f9fafb' },
     img: { width: '100%', height: '100%', objectFit: 'cover' },
