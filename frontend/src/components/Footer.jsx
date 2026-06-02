@@ -45,8 +45,8 @@ const Footer = () => {
                         <ul style={styles.contactList}>
                             <li style={styles.contactItem}>
                                 <span style={styles.contactIcon}>✉</span>
-                                <a href="mailto:Ozonetraders030302026@gmail.com" style={styles.link}>
-                                    Ozonetraders030302026@gmail.com
+                                <a href="mailto:Ozonetraders03032026@gmail.com" style={styles.link}>
+                                    Ozonetraders03032026@gmail.com
                                 </a>
                             </li>
                             <li style={styles.contactItem}>

@@ -227,8 +227,8 @@ const HomePage = () => {
             <div className="contact-details">
               <div className="contact-detail-item">
                 <Mail size={16} />
-                <a href="mailto:Ozonetraders030302026@gmail.com" style={{ color: '#92400e', textDecoration: 'none' }}>
-                  Ozonetraders030302026@gmail.com
+                <a href="mailto:Ozonetraders03032026@gmail.com" style={{ color: '#92400e', textDecoration: 'none' }}>
+                  Ozonetraders03032026@gmail.com
                 </a>
               </div>
               <div className="contact-detail-item">
